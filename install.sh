@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright (C) Cartographer3D 2023-2024
 
@@ -12,10 +12,15 @@ KDIR="${HOME}/klipper"
 KENV="${HOME}/klippy-env"
 
 IS_K1_OS=0
+IS_K2_OS=0
 if grep -Fqs "ID=buildroot" /etc/os-release; then
   KDIR="/usr/share/klipper"
   KENV="/usr/share/klippy-env"
   IS_K1_OS=1
+elif grep -Fqs "t113_i-CR0CN240110C10" /etc/os-release; then
+  KDIR="/usr/share/klipper"
+  KENV="/usr/share/klippy-env"
+  IS_K2_OS=1
 fi
 PYTHON_EXEC="$KENV/bin/python"
 
@@ -27,7 +32,7 @@ if [ ! -d "$KDIR" ] || [ ! -d "$KENV" ]; then
 fi
 
 # skip trying to setup requirements if running from a K1
-if [[ $IS_K1_OS -ne 1 ]]; then
+if [ $IS_K1_OS -ne 1 ] && [ $IS_K2_OS -ne 1 ]; then
   # install Cartographer requirements to env
   echo "Cartographer: installing python requirements to env, this may take 10+ minutes."
   "${KENV}/bin/pip" install -r "${BKDIR}/requirements.txt"
@@ -39,9 +44,11 @@ for file in idm.py cartographer.py scanner.py; do
     if [ -e "${KDIR}/klippy/extras/${file}" ]; then
         rm "${KDIR}/klippy/extras/${file}"
     fi
-    ln -s "${BKDIR}/${file}" "${KDIR}/klippy/extras/${file}"
-    if ! grep -q "klippy/extras/${file}" "${KDIR}/.git/info/exclude"; then
-        echo "klippy/extras/${file}" >> "${KDIR}/.git/info/exclude"
+    ln -fs "${BKDIR}/${file}" "${KDIR}/klippy/extras/${file}"
+    if [ -d "${KDIR}/.git" ]; then
+        if ! grep -q "klippy/extras/${file}" "${KDIR}/.git/info/exclude"; then
+            echo "klippy/extras/${file}" >> "${KDIR}/.git/info/exclude"
+        fi
     fi
 done
 

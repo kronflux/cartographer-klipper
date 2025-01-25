@@ -2933,9 +2933,10 @@ class ScannerTempWrapper:
             "measured_max_temp": round(self.scanner.measured_max, 2),
         }
 
-
-TRSYNC_TIMEOUT = 0.025
-TRSYNC_SINGLE_MCU_TIMEOUT = 0.250
+# needed due to userspace USB to serial implementation
+K2_MULTIPLIER = 8
+TRSYNC_TIMEOUT = 0.025 * K2_MULTIPLIER
+TRSYNC_SINGLE_MCU_TIMEOUT = 0.250 * K2_MULTIPLIER
 
 
 @final
